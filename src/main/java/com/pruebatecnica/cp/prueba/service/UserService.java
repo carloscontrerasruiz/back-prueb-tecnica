@@ -1,7 +1,10 @@
 package com.pruebatecnica.cp.prueba.service;
 
+import javax.validation.Valid;
+
 import com.pruebatecnica.cp.prueba.dto.GeneralResponse;
 import com.pruebatecnica.cp.prueba.dto.UserDto;
+import com.pruebatecnica.cp.prueba.dto.UserLogin;
 import com.pruebatecnica.cp.prueba.entity.User;
 
 public interface UserService {
@@ -9,4 +12,5 @@ public interface UserService {
 	public GeneralResponse<User> updateUser(UserDto user);
 	public GeneralResponse<User> deleteUser(int id);
 	public GeneralResponse<User> findUserByUsername(String username);
+	public GeneralResponse<User> loginUser(@Valid UserLogin request);
 }

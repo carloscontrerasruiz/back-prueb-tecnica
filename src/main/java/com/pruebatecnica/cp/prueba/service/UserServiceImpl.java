@@ -3,10 +3,12 @@ package com.pruebatecnica.cp.prueba.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.pruebatecnica.cp.prueba.dto.GeneralResponse;
 import com.pruebatecnica.cp.prueba.dto.UserDto;
+import com.pruebatecnica.cp.prueba.dto.UserLogin;
 import com.pruebatecnica.cp.prueba.entity.User;
 import com.pruebatecnica.cp.prueba.repository.UserRepository;
 
@@ -18,12 +20,16 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public GeneralResponse<User> registerUser(UserDto user) {
-		User response = repository.save(new User(user.getNombreUsuario(),
-										user.getCorreo(),
-										user.getPassword() 
-										)
-							);
-		return new GeneralResponse<User>(false,"",response);
+		try {
+			User response = repository.save(new User(user.getNombreUsuario(),
+						user.getCorreo(),
+						user.getPassword() 
+						)
+					);
+			return new GeneralResponse<User>(false,"",response);
+		}catch(DataIntegrityViolationException e) {
+			return new GeneralResponse<User>(true,"El nombre de usuario o email ya existen. Intenta hacer login",null);
+		}
 	}
 
 	@Override
@@ -62,6 +68,23 @@ public class UserServiceImpl implements UserService {
 					);
 		}
 		
+	}
+
+	@Override
+	public GeneralResponse<User> loginUser(UserLogin request) {
+		Optional<User> response = repository.findByNombreUsuario(request.getNombreUsuario());
+		if(response.isPresent()) {
+			User user = response.get();
+			if(user.getPassword().equals(request.getPassword())) {
+				return new GeneralResponse<User>(false,"",
+						user
+						);
+			}
+			
+		}
+		return new GeneralResponse<User>(true,"Usuario o password incorrectos",
+				null
+				);
 	}
 
 }

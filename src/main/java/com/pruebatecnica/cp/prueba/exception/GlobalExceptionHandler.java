@@ -29,6 +29,6 @@ public class GlobalExceptionHandler {
 			GeneralResponse<User> response = new GeneralResponse<>(true,
 																	exception.getMessage(),
 																	null);
-			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 }
