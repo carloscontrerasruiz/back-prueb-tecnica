@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.pruebatecnica.cp.prueba.entity.User;
+import com.pruebatecnica.cp.prueba.entity.UserEntity;
 
-public interface UserRepository extends JpaRepository<User, Integer>{
+public interface UserRepository extends JpaRepository<UserEntity, Integer>{
 
-	public Optional<User> findByNombreUsuario(String username);
+	public Optional<UserEntity> findByNombreUsuario(String username);
 }

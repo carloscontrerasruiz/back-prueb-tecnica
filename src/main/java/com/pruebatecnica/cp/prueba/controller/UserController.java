@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pruebatecnica.cp.prueba.dto.GeneralResponse;
 import com.pruebatecnica.cp.prueba.dto.UserDto;
 import com.pruebatecnica.cp.prueba.dto.UserLogin;
-import com.pruebatecnica.cp.prueba.entity.User;
+import com.pruebatecnica.cp.prueba.dto.UserResponseJwt;
+import com.pruebatecnica.cp.prueba.entity.UserEntity;
 import com.pruebatecnica.cp.prueba.service.UserService;
 
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
@@ -30,38 +31,38 @@ public class UserController {
 	@Autowired
 	private UserService service;
 	
-	@PostMapping(value = "/user" ,consumes = "application/json", produces = "application/json")
+	@PostMapping(value = "/userCreate" ,consumes = "application/json", produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<GeneralResponse<User>> registrarUsuario(@Valid @RequestBody UserDto request){
-		GeneralResponse<User> response = service.registerUser(request);
+	public ResponseEntity<GeneralResponse<UserEntity>> registrarUsuario(@Valid @RequestBody UserDto request){
+		GeneralResponse<UserEntity> response = service.registerUser(request);
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 	
-	@PutMapping(value = "/user" ,consumes = "application/json", produces = "application/json")
+	@PutMapping(value = "/userUpdate" ,consumes = "application/json", produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<GeneralResponse<User>> updateUser(@Valid @RequestBody UserDto request){
-		GeneralResponse<User> response = service.updateUser(request);
+	public ResponseEntity<GeneralResponse<UserEntity>> updateUser(@Valid @RequestBody UserDto request){
+		GeneralResponse<UserEntity> response = service.updateUser(request);
 		return new ResponseEntity<>(response, response.isError() ? HttpStatus.BAD_REQUEST : HttpStatus.OK);
 	}
 	
 	@DeleteMapping(value = "/user/{id}" , produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<GeneralResponse<User>> deleteUser(@PathVariable int id){
-		GeneralResponse<User> response = service.deleteUser(id);
+	public ResponseEntity<GeneralResponse<UserEntity>> deleteUser(@PathVariable int id){
+		GeneralResponse<UserEntity> response = service.deleteUser(id);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
 	@GetMapping(value = "/user/{name}" , produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<GeneralResponse<User>> findUserByName(@PathVariable String name){
-		GeneralResponse<User> response = service.findUserByUsername(name);
+	public ResponseEntity<GeneralResponse<UserEntity>> findUserByName(@PathVariable String name){
+		GeneralResponse<UserEntity> response = service.findUserByUsername(name);
 		return new ResponseEntity<>(response, response.isError() ? HttpStatus.BAD_REQUEST : HttpStatus.OK);
 	}
 	
 	@PostMapping(value = "/login" , produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<GeneralResponse<User>> loginUser(@Valid @RequestBody UserLogin request){
-		GeneralResponse<User> response = service.loginUser(request);
+	public ResponseEntity<GeneralResponse<UserResponseJwt>> loginUser(@Valid @RequestBody UserLogin request){
+		GeneralResponse<UserResponseJwt> response = service.loginUser(request);
 		return new ResponseEntity<>(response, response.isError() ? HttpStatus.BAD_REQUEST : HttpStatus.OK);
 	}
 }

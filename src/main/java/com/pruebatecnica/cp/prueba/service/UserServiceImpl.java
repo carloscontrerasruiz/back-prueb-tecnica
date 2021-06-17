@@ -4,66 +4,81 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.pruebatecnica.cp.prueba.dto.GeneralResponse;
 import com.pruebatecnica.cp.prueba.dto.UserDto;
 import com.pruebatecnica.cp.prueba.dto.UserLogin;
-import com.pruebatecnica.cp.prueba.entity.User;
+import com.pruebatecnica.cp.prueba.dto.UserResponseJwt;
+import com.pruebatecnica.cp.prueba.entity.UserEntity;
 import com.pruebatecnica.cp.prueba.repository.UserRepository;
+import com.pruebatecnica.cp.prueba.utils.JwtUtil;
 
 @Service
 public class UserServiceImpl implements UserService {
 	
 	@Autowired
 	private UserRepository repository;
+	
+	@Autowired
+	private AuthenticationManager authenticationManager;
+	
+	@Autowired
+	private CustomUserDetailsService userDetailsService;
+	
+	@Autowired
+	private JwtUtil jwtUtil;
 
 	@Override
-	public GeneralResponse<User> registerUser(UserDto user) {
+	public GeneralResponse<UserEntity> registerUser(UserDto user) {
 		try {
-			User response = repository.save(new User(user.getNombreUsuario(),
+			UserEntity response = repository.save(new UserEntity(user.getNombreUsuario(),
 						user.getCorreo(),
 						user.getPassword() 
 						)
 					);
-			return new GeneralResponse<User>(false,"",response);
+			return new GeneralResponse<UserEntity>(false,"",response);
 		}catch(DataIntegrityViolationException e) {
-			return new GeneralResponse<User>(true,"El nombre de usuario o email ya existen. Intenta hacer login",null);
+			return new GeneralResponse<UserEntity>(true,"El nombre de usuario o email ya existen. Intenta hacer login",null);
 		}
 	}
 
 	@Override
-	public GeneralResponse<User> updateUser(UserDto user) {
-		if(user.getId() == 0) {
-			return new GeneralResponse<User>(true,"Id no proporcionado",null);
+	public GeneralResponse<UserEntity> updateUser(UserDto user) {
+		if(user.getNombreUsuario().equals("")) {
+			return new GeneralResponse<UserEntity>(true,"Username no proporcionado",null);
 		}
-		Optional<User> existingUser = repository.findById(user.getId());
+		Optional<UserEntity> existingUser = repository.findByNombreUsuario(user.getNombreUsuario());
 		if(existingUser.isPresent()) {
-			User updateUser = existingUser.get();
+			UserEntity updateUser = existingUser.get();
 			updateUser.setNombreUsuario(user.getNombreUsuario());
 			updateUser.setCorreo(user.getCorreo());
 			updateUser.setPassword(user.getPassword());
-			return new GeneralResponse<User>(false,"",repository.save(updateUser));
+			return new GeneralResponse<UserEntity>(false,"",repository.save(updateUser));
 		}else {
-			return new GeneralResponse<User>(true,"Usuario no existe",null);
+			return new GeneralResponse<UserEntity>(true,"Usuario no existe",null);
 		}
 	}
 
 	@Override
-	public GeneralResponse<User> deleteUser(int id) {
+	public GeneralResponse<UserEntity> deleteUser(int id) {
 		repository.deleteById(id);
-		return new GeneralResponse<User>(false,"",null);
+		return new GeneralResponse<UserEntity>(false,"",null);
 	}
 
 	@Override
-	public GeneralResponse<User> findUserByUsername(String username) {
-		Optional<User> response = repository.findByNombreUsuario(username);
+	public GeneralResponse<UserEntity> findUserByUsername(String username) {
+		Optional<UserEntity> response = repository.findByNombreUsuario(username);
 		if(response.isPresent()) {
-			return new GeneralResponse<User>(false,"",
+			return new GeneralResponse<UserEntity>(false,"",
 					response.get()
 					);
 		}else {
-			return new GeneralResponse<User>(true,"Usuario no existe",
+			return new GeneralResponse<UserEntity>(true,"Usuario no existe",
 					null
 					);
 		}
@@ -71,19 +86,25 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public GeneralResponse<User> loginUser(UserLogin request) {
-		Optional<User> response = repository.findByNombreUsuario(request.getNombreUsuario());
-		if(response.isPresent()) {
-			User user = response.get();
-			if(user.getPassword().equals(request.getPassword())) {
-				return new GeneralResponse<User>(false,"",
-						user
-						);
-			}
+	public GeneralResponse<UserResponseJwt> loginUser(UserLogin request) {
+		try {
+			authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(request.getNombreUsuario(), 
+							request.getPassword()));
 			
+		} catch (BadCredentialsException e) {
+			return new GeneralResponse<UserResponseJwt>(true,"Usuario o password incorrectos",
+					null
+					);
 		}
-		return new GeneralResponse<User>(true,"Usuario o password incorrectos",
-				null
+		
+		final UserDetails userDetails = userDetailsService
+				.loadUserByUsername(request.getNombreUsuario());
+		
+		final String jwt = jwtUtil.generateToken(userDetails);
+		
+		return new GeneralResponse<UserResponseJwt>(false,"",
+				new UserResponseJwt(request.getNombreUsuario(),jwt)
 				);
 	}
 

@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @Table(name="USER")
-public class User {
+public class UserEntity {
 	
 	@Id
 	@GeneratedValue
@@ -27,7 +27,7 @@ public class User {
 	
 	private String password;
 
-	public User(String nombreUsuario, String correo, String password) {
+	public UserEntity(String nombreUsuario, String correo, String password) {
 		super();
 		this.nombreUsuario = nombreUsuario;
 		this.correo = correo;
